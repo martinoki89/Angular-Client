@@ -1,0 +1,29 @@
+table {
+  width: 100%;
+}
+
+.negative-value {
+  color: red;
+}
+
+.positive-value {
+  color: green;
+}
+
+.chart-section {
+  display: flex;
+  justify-content: center;
+}
+
+.date-picker {
+  width: 300px;
+}
+
+.search-button {
+  height: 56px;
+  margin-left: 2rem;
+}
+
+.search-container {
+  display: flex;
+}

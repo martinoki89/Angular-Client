@@ -1,0 +1,30 @@
+<mat-toolbar class="title-toolbar">
+  <button
+    mat-icon-button
+    class="example-icon"
+    aria-label="Example icon-button with menu icon"
+    (click)="drawer.toggle()"
+  >
+    <mat-icon>menu</mat-icon>
+  </button>
+  <span class="title-center">
+    <img src="criteria.png" height="50px" alt="Criteria_Logo" />
+  </span>
+</mat-toolbar>
+
+<mat-drawer-container class="drawer-container">
+  <mat-drawer #drawer mode="side">
+    <mat-list>
+      <mat-list-item>
+        <button mat-button routerLink="/accounts">Mis Cuentas</button>
+      </mat-list-item>
+      <mat-list-item>
+        <button mat-button routerLink="/reports">Mis Reportes</button>
+      </mat-list-item>
+      <!-- Agrega más items aquí si es necesario -->
+    </mat-list>
+  </mat-drawer>
+  <mat-drawer-content class="drawer-content">
+    <router-outlet></router-outlet>
+  </mat-drawer-content>
+</mat-drawer-container>

@@ -1,0 +1,69 @@
+.example-icon {
+  padding: 0 14px;
+}
+.example-spacer {
+  flex: 1 1 auto;
+}
+
+.title-center {
+  margin: 0 auto;
+  color: white;
+}
+
+.title-toolbar {
+  background: #c7c7cc;
+  height: 64px; /* Ajusta esto según tu diseño */
+  display: flex;
+  align-items: center; /* Centra los elementos verticalmente */
+  position: fixed; /* Fijo en la parte superior */
+  top: 0;
+  left: 0;
+  width: 100%; /* Ocupa todo el ancho */
+  z-index: 1000; /* Asegúrate de que esté por encima del contenido */
+}
+
+.drawer-container {
+  height: 100vh; /* Asegura que el contenedor del drawer ocupe toda la altura de la ventana */
+  width: 100vw; /* Asegura que el contenedor del drawer ocupe todo el ancho de la ventana */
+  display: flex;
+}
+
+.drawer-content {
+  flex: 1; /* Permite que el contenido se expanda para ocupar el espacio disponible */
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Asegura que el contenido del drawer ocupe toda la altura disponible */
+  width: 100%; /* Asegura que el contenido del drawer ocupe todo el ancho disponible */
+}
+
+.example-container {
+  width: 400px;
+  height: 200px;
+  margin: 12px;
+  border: 1px solid #555;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+mat-drawer-container {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  padding-top: 64px; /* Ajusta según la altura del toolbar */
+}
+
+mat-drawer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-top: 64px;
+}
+
+mat-list {
+  flex: 1 1 auto; /* Ocupa el espacio restante en el mat-drawer */
+  overflow: auto; /* Permite el desplazamiento del contenido */
+}

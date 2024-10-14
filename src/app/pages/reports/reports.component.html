@@ -1,0 +1,325 @@
+<form [formGroup]="reportsFormGroup">
+  <div>
+    <mat-radio-group
+      formControlName="dateType"
+      (change)="changeDatetype($event)"
+    >
+      <mat-radio-button
+        *ngFor="let opt of dateTypeOptions"
+        [value]="opt.value"
+        >{{ opt.name }}</mat-radio-button
+      >
+    </mat-radio-group>
+  </div>
+  <div class="search-container">
+    <div>
+      <mat-form-field class="date-picker" *ngIf="showRangeDatepicker">
+        <mat-label>Seleccione un rango</mat-label>
+        <mat-date-range-input [rangePicker]="picker">
+          <input
+            formControlName="startDate"
+            matStartDate
+            placeholder="Start date"
+          />
+          <input formControlName="endDate" matEndDate placeholder="End date" />
+        </mat-date-range-input>
+        <mat-datepicker-toggle
+          matIconSuffix
+          [for]="picker"
+        ></mat-datepicker-toggle>
+        <mat-date-range-picker #picker></mat-date-range-picker>
+      </mat-form-field>
+
+      <mat-form-field class="date-picker" *ngIf="!showRangeDatepicker">
+        <mat-label>Seleccione una fecha</mat-label>
+        <input formControlName="date" matInput [matDatepicker]="picker" />
+        <mat-datepicker-toggle
+          matIconSuffix
+          [for]="picker"
+        ></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+    </div>
+    <div>
+      <button
+        [disabled]="!checkValidDates()"
+        class="search-button"
+        mat-raised-button
+        (click)="searchData()"
+      >
+        Buscar
+      </button>
+    </div>
+  </div>
+</form>
+
+<div>
+  <mat-tab-group>
+    <mat-tab label="TENENCIA">
+      <table mat-table [dataSource]="dataSource">
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>FECHA</th>
+          <td mat-cell *matCellDef="let element">{{ element.date }}</td>
+        </ng-container>
+
+        <ng-container *ngFor="let column of displayedColumns.slice(1, -1)">
+          <ng-container [matColumnDef]="column">
+            <th mat-header-cell *matHeaderCellDef>{{ column }}</th>
+            <td mat-cell *matCellDef="let element">
+              {{
+                element[column] !== "-"
+                  ? (element[column]
+                    | currency : getCurrencySymbol(column) : "symbol")
+                  : "-"
+              }}
+            </td>
+          </ng-container>
+        </ng-container>
+
+        <ng-container matColumnDef="total">
+          <th mat-header-cell *matHeaderCellDef>TOTAL</th>
+          <td mat-cell *matCellDef="let element">
+            {{
+              element.total !== "-"
+                ? (element.total | currency : "$" : "symbol")
+                : "-"
+            }}
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </mat-tab>
+    <mat-tab label="RENDIMIENTO POR ACTIVO">
+      <table mat-table [dataSource]="differenceDataSource">
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>FECHA</th>
+          <td mat-cell *matCellDef="let element">{{ element.date }}</td>
+        </ng-container>
+
+        <ng-container *ngFor="let column of differenceColumns.slice(1, -1)">
+          <ng-container [matColumnDef]="column">
+            <th mat-header-cell *matHeaderCellDef>{{ column }}</th>
+            <td
+              mat-cell
+              *matCellDef="let element"
+              [ngClass]="{
+              'negative-value': element[column] !== '-' && element[column] < 0,
+              'positive-value': element[column] !== '-' && element[column] > 0,
+            }"
+            >
+              {{
+                element[column] !== "-"
+                  ? (element[column]
+                    | currency : getCurrencySymbol(column) : "symbol")
+                  : "-"
+              }}
+            </td>
+          </ng-container>
+        </ng-container>
+
+        <ng-container matColumnDef="total">
+          <th mat-header-cell *matHeaderCellDef>TOTAL</th>
+          <td
+            mat-cell
+            *matCellDef="let element"
+            [ngClass]="{
+            'negative-value': element.total !== '-' && element.total < 0,
+            'positive-value': element.total !== '-' && element.total > 0,
+          }"
+          >
+            {{
+              element.total !== "-"
+                ? (element.total | currency : "$" : "symbol")
+                : "-"
+            }}
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="differenceColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: differenceColumns"></tr>
+      </table>
+    </mat-tab>
+    <mat-tab label="RENDIMIENTO SEMANAL">
+      <table mat-table [dataSource]="percentageWeeklyDataSource">
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>FECHA</th>
+          <td mat-cell *matCellDef="let element">{{ element.date }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="porcentual">
+          <th mat-header-cell *matHeaderCellDef>Porcentual</th>
+          <td
+            mat-cell
+            *matCellDef="let element"
+            [ngClass]="{
+            'negative-value': element.porcentual !== '-' && element.porcentual < 0,
+            'positive-value': element.porcentual !== '-' && element.porcentual > 0,
+          }"
+          >
+            {{
+              element.porcentual !== "-"
+                ? (element.porcentual | percent : "2.2")
+                : "-"
+            }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="ARS">
+          <th mat-header-cell *matHeaderCellDef>ARS</th>
+          <td
+            mat-cell
+            *matCellDef="let element"
+            [ngClass]="{
+            'negative-value': element.ARS !== '-' && element.ARS < 0,
+            'positive-value': element.ARS !== '-' && element.ARS > 0,
+          }"
+          >
+            {{
+              element.ARS !== "-"
+                ? (element.ARS | currency : "$" : "symbol")
+                : "-"
+            }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="A3500">
+          <th mat-header-cell *matHeaderCellDef>A3500</th>
+          <td
+            mat-cell
+            *matCellDef="let element"
+            [ngClass]="{
+            'negative-value': element.A3500 !== '-' && element.A3500 < 0,
+            'positive-value': element.A3500 !== '-' && element.A3500 > 0,
+          }"
+          >
+            {{
+              element.A3500 !== "-" ? (element.A3500 | percent : "2.2") : "-"
+            }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="inflacion">
+          <th mat-header-cell *matHeaderCellDef>INFLACION</th>
+          <td
+            mat-cell
+            *matCellDef="let element"
+            [ngClass]="{
+            'negative-value': element.inflacion !== '-' && element.inflacion < 0,
+            'positive-value': element.inflacion !== '-' && element.inflacion > 0,
+          }"
+          >
+            {{
+              element.inflacion !== "-"
+                ? (element.inflacion | percent : "2.2")
+                : "-"
+            }}
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="percentageWeeklyColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: percentageWeeklyColumns"></tr>
+      </table>
+    </mat-tab>
+    <mat-tab label="RENDIMIENTO ACUMULADO">
+      <table mat-table [dataSource]="percentageAcumDataSource">
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>FECHA</th>
+          <td mat-cell *matCellDef="let element">{{ element.date }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="porcentual">
+          <th mat-header-cell *matHeaderCellDef>Porcentual</th>
+          <td
+            mat-cell
+            *matCellDef="let element"
+            [ngClass]="{
+            'negative-value': element.porcentual !== '-' && element.porcentual < 0,
+            'positive-value': element.porcentual !== '-' && element.porcentual > 0,
+          }"
+          >
+            {{
+              element.porcentual !== "-"
+                ? (element.porcentual | percent : "2.2")
+                : "-"
+            }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="ARS">
+          <th mat-header-cell *matHeaderCellDef>ARS</th>
+          <td
+            mat-cell
+            *matCellDef="let element"
+            [ngClass]="{
+            'negative-value': element.ARS !== '-' && element.ARS < 0,
+            'positive-value': element.ARS !== '-' && element.ARS > 0,
+          }"
+          >
+            {{
+              element.ARS !== "-"
+                ? (element.ARS | currency : "$" : "symbol")
+                : "-"
+            }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="A3500">
+          <th mat-header-cell *matHeaderCellDef>A3500</th>
+          <td
+            mat-cell
+            *matCellDef="let element"
+            [ngClass]="{
+            'negative-value': element.A3500 !== '-' && element.A3500 < 0,
+            'positive-value': element.A3500 !== '-' && element.A3500 > 0,
+          }"
+          >
+            {{
+              element.A3500 !== "-" ? (element.A3500 | percent : "2.2") : "-"
+            }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="inflacion">
+          <th mat-header-cell *matHeaderCellDef>INFLACION</th>
+          <td
+            mat-cell
+            *matCellDef="let element"
+            [ngClass]="{
+            'negative-value': element.inflacion !== '-' && element.inflacion < 0,
+            'positive-value': element.inflacion !== '-' && element.inflacion > 0,
+          }"
+          >
+            {{
+              element.inflacion !== "-"
+                ? (element.inflacion | percent : "2.2")
+                : "-"
+            }}
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="percentageAcumColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: percentageAcumColumns"></tr>
+      </table>
+    </mat-tab>
+    <mat-tab label="TENENCIA">
+      <div class="chart-section">
+        <ngx-charts-line-chart
+          [results]="charData"
+          [animations]="animationPC"
+          [scheme]="colorSchemePC"
+          [view]="[1000, 400]"
+          [showXAxisLabel]="true"
+          [showYAxisLabel]="true"
+          [showRefLabels]="true"
+          [showRefLines]="true"
+          [showGridLines]="true"
+          [xAxis]="true"
+          [yAxis]="true"
+          [legend]="true"
+        ></ngx-charts-line-chart>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
