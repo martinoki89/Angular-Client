@@ -10,7 +10,8 @@ import {
   MatSidenavModule,
 } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { RouterModule, RouterOutlet } from '@angular/router';
+import { Router, RouterModule, RouterOutlet } from '@angular/router';
+import { LoginService } from '../../services/login.service';
 
 @Component({
   selector: 'app-main',
@@ -31,4 +32,14 @@ import { RouterModule, RouterOutlet } from '@angular/router';
   templateUrl: './main.component.html',
   styleUrl: './main.component.scss',
 })
-export class MainComponent {}
+export class MainComponent {
+  constructor(
+    private readonly loginService: LoginService,
+    private readonly router: Router
+  ) {}
+
+  logOut() {
+    this.loginService.logout();
+    this.router.navigate(['login']);
+  }
+}

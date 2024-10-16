@@ -275,7 +275,7 @@ export class ReportsComponent implements OnInit {
               : '-';
         }
         if (!hasValidDate) {
-          idValuesMap[id] = idValuesMap[id] || 0; // Initialize to avoid missing ID
+          idValuesMap[id] = idValuesMap[id] || 0;
         } else {
           columns.add(id);
         }
@@ -468,18 +468,14 @@ export class ReportsComponent implements OnInit {
   getChartData(source: any[]) {
     const transformedArray: any[] = [];
     source.forEach((item) => {
-      // Para cada clave en el objeto (excepto "date")
       Object.keys(item).forEach((key) => {
         if (key !== 'date') {
-          // Buscamos si ya existe un objeto en el array transformado
           const existing = transformedArray.find((t) => t.name === key);
           const valueEntry = { value: item[key] as number, name: item.date };
 
           if (existing) {
-            // Si existe, agregamos el nuevo valor
             existing.series.push(valueEntry);
           } else {
-            // Si no existe, creamos una nueva entrada
             transformedArray.push({
               name: key,
               series: [valueEntry],
@@ -504,11 +500,11 @@ export class ReportsComponent implements OnInit {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'archivo.xlsx'; // Nombre del archivo a descargar
+        a.download = 'reporte.xlsx';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        window.URL.revokeObjectURL(url); // Liberar el objeto URL
+        window.URL.revokeObjectURL(url);
       },
       error: (error) => {
         console.error('Error al descargar el archivo', error);
@@ -519,10 +515,8 @@ export class ReportsComponent implements OnInit {
   exportPdf() {
     html2canvas
       .default(document.getElementById('printcontent')!, {
-        // Opciones
         allowTaint: true,
         useCORS: false,
-        // Calidad del PDF
         scale: 3,
       })
       .then(function (canvas: any) {
