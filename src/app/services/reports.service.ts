@@ -9,26 +9,38 @@ import { reportsMock } from '../pages/reports/reports-mock';
 export class ReportsService {
   constructor(private http: HttpClient) {}
 
-  getReportDataByDate(date: string): Observable<any> {
-    //TODO: retornar desde el servicio
+  getReportDataByDate(accountId: string, date: string): Observable<any> {
+    const token = `GrSVBXdaHw30HIO6CdnUU5bAsy2Ngo3AJfafS0qckukGYSVrbN75SMwIWxI7mqQekW9mFP08ocOiTnVhlivWBD9LC9DqoROYUWz2iiktMNBS24jBWBPYld0YlpnLKi9K_Hrkga2kiogrk7imXHwfrpnx8H4_dc0kNlZXlDjS2ElKwRgSdxrv8PcxdWYE6NXXNIn9v93boz0WxMqfy6TXDPWyvTqsiGvIo1xhthWya-rzuTRhua0YMKB385cmSqRTVyV5L5nh8kFdG9g7HpkXKgXswZF8dpl3UXiK0sA-6pBnz1jehSQNg31G_5cFjG47pV0oDBfjvGdPMCteHNM_PmSJeLZXPUyvt458A7t51pdh5fUI4Jl6u32PyJne2Ia6ybF3qe_Vsku7Av_rO-aLXbCLhTtGyMjZzd6ejHTejC8wb_CuJA0VD3zo9mu3L2j8qZAroVHbdGEqPDLMjUYaiGvR-fKfad3OKZ5FGAP-OOA`;
     const year = new Date(date).getFullYear();
     const month = new Date(date).getMonth() + 1;
     const day = new Date(date).getDate();
-    const url = `https://seashell-app-r8dit.ondigitalocean.app/api/accounts/11170?date=${date}`;
+    const url = `/api/api/accounts/${accountId}?date=${year}-${month
+      .toString()
+      .padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
     // return this.http.get<any>(this.apiUrl);
     return of(reportsMock);
   }
 
-  getReportDataByRange(startDate: string, endDate: string): Observable<any> {
-    const token = `x_OaoH8XuDX8jQUV6unRqm-n9D8MdzFlEJl1ImuYQzl_igz2H_UBChqp3yrtaPU254UQY54p-8m7wepwKaiBVaeX_rQORXUMhuoUrz67kRSdR2BHUUqpFeScPIUrWtWjjxFt1wjm1XwgvZqGFTTanFmrDIDk4Zcz33SpJaaW6vG-qYYS_1eUoNC0-LmUCSNJw2GMso-7_N2DzbNrbWfEj5qDmwevyLzF4b7cQ4Fb4VEb4Dt0MKLFkE1bJLjBkUFTmNNmWP3AkpBzjPfM9JIjdu75oQ6vUljT4bFfjSwYE-5XvimcYhkDNEaF-nv4SFkkhP0wLWBD8yGYnLXQnqeQ7aqXenCK7auxwe4TYNdQlRcsFvvqQEbJbCQhGF_-JuIT68R5hga2bviLdUnEZJbUOLu8qr25RSIkuCRi60yoYobihvsq7nehaYNUyeLfTnN-sz1mQ5MHqsO1WZ1u4ToShytrhmQQJUzKP7i8T3vzQ5M`;
+  getReportDataByRange(
+    accountId: string,
+    startDate: string,
+    endDate: string
+  ): Observable<any> {
+    const token = `GrSVBXdaHw30HIO6CdnUU5bAsy2Ngo3AJfafS0qckukGYSVrbN75SMwIWxI7mqQekW9mFP08ocOiTnVhlivWBD9LC9DqoROYUWz2iiktMNBS24jBWBPYld0YlpnLKi9K_Hrkga2kiogrk7imXHwfrpnx8H4_dc0kNlZXlDjS2ElKwRgSdxrv8PcxdWYE6NXXNIn9v93boz0WxMqfy6TXDPWyvTqsiGvIo1xhthWya-rzuTRhua0YMKB385cmSqRTVyV5L5nh8kFdG9g7HpkXKgXswZF8dpl3UXiK0sA-6pBnz1jehSQNg31G_5cFjG47pV0oDBfjvGdPMCteHNM_PmSJeLZXPUyvt458A7t51pdh5fUI4Jl6u32PyJne2Ia6ybF3qe_Vsku7Av_rO-aLXbCLhTtGyMjZzd6ejHTejC8wb_CuJA0VD3zo9mu3L2j8qZAroVHbdGEqPDLMjUYaiGvR-fKfad3OKZ5FGAP-OOA`;
     const startYear = new Date(startDate).getFullYear();
     const startMonth = new Date(startDate).getMonth() + 1;
     const startDay = new Date(startDate).getDate();
     const endYear = new Date(endDate).getFullYear();
     const endMonth = new Date(endDate).getMonth() + 1;
     const endDay = new Date(endDate).getDate();
-    // const url = `https://seashell-app-r8dit.ondigitalocean.app/api/accounts/11170?startDate=${startYear}-${startMonth}-${startDay}&endDate=${endYear}-${endMonth}-${endDay}`;
-    const url = `/api/api/accounts/11170?startDate=2024-06-01&endDate=2024-06-10`;
+    const url = `/api/api/accounts/${accountId}?startDate=${startYear}-${startMonth
+      .toString()
+      .padStart(2, '0')}-${startDay
+      .toString()
+      .padStart(2, '0')}&endDate=${endYear}-${endMonth
+      .toString()
+      .padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+    // const url = `/api/api/accounts/11170?startDate=2024-06-01&endDate=2024-06-10`;
     return this.http.get<any>(url, {
       headers: {
         Authorization: `Bearer ${token}`,

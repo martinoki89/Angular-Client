@@ -1,1 +1,46 @@
-<p>accounts works!</p>
+<div class="container">
+  <div class="title">Buscador de cuentas:</div>
+  <form class="form" [formGroup]="accountsFormGroup">
+    <div>
+      <mat-form-field class="full-width">
+        <mat-label>Cuenta</mat-label>
+        <input matInput formControlName="name" required />
+      </mat-form-field>
+    </div>
+    <div>
+      <button
+        class="search-button"
+        mat-raised-button
+        [disabled]="accountsFormGroup.invalid"
+        (click)="searchAccount()"
+      >
+        Buscar
+      </button>
+    </div>
+  </form>
+  <div>
+    <mat-list role="list">
+      <div>
+        <mat-list-item *ngFor="let account of accounts" role="listitem">
+          <div class="list-item">
+            <a
+              mat-button
+              [routerLink]="['/reports/' + account.ID]"
+              routerLinkActive="router-link-active"
+              >{{ account.Name }}</a
+            >
+            <!-- <div>
+              <button
+                class="redirect-button"
+                mat-raised-button
+                (click)="goToReport(account)"
+              >
+                Buscar
+              </button>
+            </div> -->
+          </div>
+        </mat-list-item>
+      </div>
+    </mat-list>
+  </div>
+</div>

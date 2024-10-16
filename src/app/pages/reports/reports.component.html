@@ -49,6 +49,9 @@
       >
         Buscar
       </button>
+      <!-- <button class="search-button" mat-raised-button (click)="exportPdf()">
+        Exportar PDF
+      </button> -->
     </div>
   </div>
 </form>
@@ -56,7 +59,7 @@
 <div>
   <mat-tab-group>
     <mat-tab label="TENENCIA">
-      <table mat-table [dataSource]="dataSource">
+      <table mat-table [dataSource]="dataSource" id="printcontent">
         <ng-container matColumnDef="date">
           <th mat-header-cell *matHeaderCellDef>FECHA</th>
           <td mat-cell *matCellDef="let element">{{ element.date }}</td>

@@ -26,6 +26,9 @@ import { ReportsService } from '../../services/reports.service';
 import { EDateType } from '../enums';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { LoaderService } from '../../services/loader.service';
+import jsPDF from 'jspdf';
+import * as html2canvas from 'html2canvas';
+import { ActivatedRoute, ActivatedRouteSnapshot } from '@angular/router';
 
 export interface PeriodicElement {
   name: string;
@@ -217,15 +220,18 @@ export class ReportsComponent implements OnInit {
   labelsPC = true;
   doughnut = true;
   charData: any[] = [];
+  accountId!: string;
 
   percentageFormatterPC(data: any): string {
     return data.value + '%';
   }
   constructor(
-    private fb: FormBuilder,
     private readonly reportService: ReportsService,
-    private readonly loaderService: LoaderService
-  ) {}
+    private readonly loaderService: LoaderService,
+    private readonly route: ActivatedRoute
+  ) {
+    this.accountId = route.snapshot.params['accountId'];
+  }
 
   ngOnInit(): void {
     this.loaderService.setLoader(true);
@@ -435,14 +441,14 @@ export class ReportsComponent implements OnInit {
       this.reportsFormGroup?.controls;
     if (dateType?.value === EDateType.DAY) {
       this.reportService
-        .getReportDataByDate(date.value)
+        .getReportDataByDate(this.accountId, date.value)
         .subscribe((reportData: IReport) => {
           this.calculateData(reportData);
           // this.loaderService.setLoader();
         });
     } else {
       this.reportService
-        .getReportDataByRange(startDate.value, endDate.value)
+        .getReportDataByRange(this.accountId, startDate.value, endDate.value)
         .subscribe((reportData: IReport) => {
           this.calculateData(reportData);
           // this.loaderService.setLoader();
@@ -483,5 +489,22 @@ export class ReportsComponent implements OnInit {
       });
     });
     this.charData = transformedArray;
+  }
+
+  exportPdf() {
+    html2canvas
+      .default(document.getElementById('printcontent')!, {
+        // Opciones
+        allowTaint: true,
+        useCORS: false,
+        // Calidad del PDF
+        scale: 3,
+      })
+      .then(function (canvas: any) {
+        var img = canvas.toDataURL('image/png');
+        var doc = new jsPDF('l', 'pt', 'a4');
+        doc.addImage(img, 'PNG', 7, 10, 200, 65, undefined, undefined, 90);
+        doc.save('demo.pdf');
+      });
   }
 }

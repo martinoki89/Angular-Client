@@ -12,7 +12,11 @@ export const routes: Routes = [
     // canActivate: [AuthGuard], // Opcional, si tienes un AuthGuard
     children: [
       { path: 'accounts', title: 'Cuentas', component: AccountsComponent },
-      { path: 'reports', title: 'Reportes', component: ReportsComponent },
+      {
+        path: 'reports/:accountId',
+        title: 'Reportes',
+        component: ReportsComponent,
+      },
     ],
   },
   { path: '**', redirectTo: 'home' }, // Manejo de rutas desconocidas
