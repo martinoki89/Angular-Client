@@ -49,6 +49,14 @@
       >
         Buscar
       </button>
+      <button
+        *ngIf="dataSource?.length"
+        class="search-button"
+        mat-raised-button
+        (click)="exportXls()"
+      >
+        Exportar Excel
+      </button>
       <!-- <button class="search-button" mat-raised-button (click)="exportPdf()">
         Exportar PDF
       </button> -->

@@ -491,6 +491,31 @@ export class ReportsComponent implements OnInit {
     this.charData = transformedArray;
   }
 
+  exportXls() {
+    const { startDate, endDate, date, dateType } =
+      this.reportsFormGroup?.controls;
+    const params =
+      dateType?.value === EDateType.DAY
+        ? { date: date.value }
+        : { startDate: startDate.value, endDate: endDate.value };
+
+    this.reportService.exportXls(params, this.accountId).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'archivo.xlsx'; // Nombre del archivo a descargar
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url); // Liberar el objeto URL
+      },
+      error: (error) => {
+        console.error('Error al descargar el archivo', error);
+      },
+    });
+  }
+
   exportPdf() {
     html2canvas
       .default(document.getElementById('printcontent')!, {
