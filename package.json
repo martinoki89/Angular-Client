@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "npx ng",
-    "start": "npx ng serve",
-    "build": "npx ng build",
+    "start": "npx ng build && npx http-server ./dist -p $PORT",
+    "build": "npx ng build --prod",
     "watch": "npx ng build --watch --configuration development",
     "test": "npx ng test"
   },
