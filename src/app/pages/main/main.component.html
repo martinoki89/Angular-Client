@@ -13,14 +13,18 @@
 </mat-toolbar>
 
 <mat-drawer-container class="drawer-container">
-  <mat-drawer #drawer mode="side">
+  <mat-drawer #drawer mode="over">
     <mat-list>
       <mat-list-item>
-        <button mat-button routerLink="/accounts">Mis Cuentas</button>
+        <button mat-button (click)="drawer.toggle()" routerLink="/accounts">
+          Mis Cuentas
+        </button>
       </mat-list-item>
-      <mat-list-item>
-        <button mat-button routerLink="/reports">Mis Reportes</button>
-      </mat-list-item>
+      <!-- <mat-list-item>
+        <button mat-button (click)="drawer.toggle()" routerLink="/reports">
+          Mis Reportes
+        </button>
+      </mat-list-item> -->
       <mat-list-item>
         <button mat-button (click)="logOut()">Cerrar sesion</button>
       </mat-list-item>
