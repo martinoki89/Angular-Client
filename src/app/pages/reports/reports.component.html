@@ -1,5 +1,5 @@
 <form [formGroup]="reportsFormGroup">
-  <div>
+  <div class="radio-container">
     <mat-radio-group
       formControlName="dateType"
       (change)="changeDatetype($event)"
@@ -64,7 +64,7 @@
   </div>
 </form>
 
-<div>
+<div class="table-container">
   <mat-tab-group>
     <mat-tab label="TENENCIA">
       <table mat-table [dataSource]="dataSource" id="printcontent">

@@ -4,21 +4,34 @@
     <div>
       <mat-form-field class="full-width">
         <mat-label>Cuenta</mat-label>
-        <input matInput formControlName="name" required />
+        <input
+          matInput
+          formControlName="account"
+          [matAutocomplete]="auto"
+          required
+        />
+        <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
+          <mat-option
+            *ngFor="let item of accounts"
+            [value]="item"
+            (onSelectionChange)="selectedData($event)"
+            >{{ item.Name }}</mat-option
+          >
+        </mat-autocomplete>
       </mat-form-field>
     </div>
     <div>
       <button
         class="search-button"
         mat-raised-button
-        [disabled]="accountsFormGroup.invalid"
-        (click)="searchAccount()"
+        [disabled]="accountsFormGroup.invalid || !selectedAccountId"
+        (click)="goToReport()"
       >
-        Buscar
+        Ir al reporte
       </button>
     </div>
   </form>
-  <div>
+  <!-- <div>
     <mat-list role="list">
       <div>
         <mat-list-item *ngFor="let account of accounts" role="listitem">
@@ -29,18 +42,10 @@
               routerLinkActive="router-link-active"
               >{{ account.Name }}</a
             >
-            <!-- <div>
-              <button
-                class="redirect-button"
-                mat-raised-button
-                (click)="goToReport(account)"
-              >
-                Buscar
-              </button>
-            </div> -->
+          
           </div>
         </mat-list-item>
       </div>
     </mat-list>
-  </div>
+  </div> -->
 </div>
