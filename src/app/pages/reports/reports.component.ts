@@ -29,6 +29,7 @@ import { LoaderService } from '../../services/loader.service';
 import jsPDF from 'jspdf';
 import * as html2canvas from 'html2canvas';
 import { ActivatedRoute, ActivatedRouteSnapshot } from '@angular/router';
+import { MatCardModule } from '@angular/material/card';
 
 export interface PeriodicElement {
   name: string;
@@ -54,6 +55,7 @@ export interface PeriodicElement {
     MatTabsModule,
     NgxChartsModule,
     MatButtonModule,
+    MatCardModule,
   ],
   providers: [provideNativeDateAdapter(), ReportsService, LoaderService],
   templateUrl: './reports.component.html',
@@ -81,6 +83,9 @@ export class ReportsComponent implements OnInit {
     startDate: new FormControl(),
     endDate: new FormControl(),
     date: new FormControl(),
+    daysInterval: new FormControl(1),
+    monthsInterval: new FormControl(0),
+    weeksInterval: new FormControl(0),
   });
   readonly labelPosition = model<EDateType.DAY | EDateType.RANGE>(
     EDateType.RANGE
@@ -248,7 +253,7 @@ export class ReportsComponent implements OnInit {
 
   calculateData(reportData: IReport) {
     const report: IReport = reportData;
-    const vouchers: IVouchers = report.Vouchers;
+    const vouchers: IVouchers = report.VouchersByCategory;
     const dates = new Set<string>();
     const columns = new Set<string>();
     const rowsMap: { [key: string]: { [key: string]: number | string } } = {};
@@ -256,7 +261,7 @@ export class ReportsComponent implements OnInit {
 
     for (const id in vouchers) {
       if (vouchers.hasOwnProperty(id)) {
-        const holdings = vouchers[id].Holdings;
+        const holdings = vouchers[id][0].Holdings;
         let hasValidDate = false;
         for (const holding of holdings) {
           const date = holding.Date
@@ -437,18 +442,38 @@ export class ReportsComponent implements OnInit {
 
   searchData() {
     this.loaderService.setLoader(true);
-    const { startDate, endDate, date, dateType } =
-      this.reportsFormGroup?.controls;
+    const {
+      startDate,
+      endDate,
+      date,
+      dateType,
+      daysInterval,
+      monthsInterval,
+      weeksInterval,
+    } = this.reportsFormGroup?.controls;
     if (dateType?.value === EDateType.DAY) {
       this.reportService
-        .getReportDataByDate(this.accountId, date.value)
+        .getReportDataByDate(
+          this.accountId,
+          date.value,
+          daysInterval?.value,
+          monthsInterval?.value,
+          weeksInterval?.value
+        )
         .subscribe((reportData: IReport) => {
           this.calculateData(reportData);
           // this.loaderService.setLoader();
         });
     } else {
       this.reportService
-        .getReportDataByRange(this.accountId, startDate.value, endDate.value)
+        .getReportDataByRange(
+          this.accountId,
+          startDate.value,
+          endDate.value,
+          daysInterval?.value,
+          monthsInterval?.value,
+          weeksInterval?.value
+        )
         .subscribe((reportData: IReport) => {
           this.calculateData(reportData);
           // this.loaderService.setLoader();
@@ -488,28 +513,43 @@ export class ReportsComponent implements OnInit {
   }
 
   exportXls() {
-    const { startDate, endDate, date, dateType } =
-      this.reportsFormGroup?.controls;
+    const {
+      startDate,
+      endDate,
+      date,
+      dateType,
+      daysInterval,
+      monthsInterval,
+      weeksInterval,
+    } = this.reportsFormGroup?.controls;
     const params =
       dateType?.value === EDateType.DAY
         ? { date: date.value }
         : { startDate: startDate.value, endDate: endDate.value };
 
-    this.reportService.exportXls(params, this.accountId).subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'reporte.xlsx';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      },
-      error: (error) => {
-        console.error('Error al descargar el archivo', error);
-      },
-    });
+    this.reportService
+      .exportXls(
+        params,
+        this.accountId,
+        daysInterval?.value,
+        monthsInterval?.value,
+        weeksInterval?.value
+      )
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'reporte.xlsx';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        },
+        error: (error) => {
+          console.error('Error al descargar el archivo', error);
+        },
+      });
   }
 
   exportPdf() {
@@ -520,9 +560,30 @@ export class ReportsComponent implements OnInit {
         scale: 3,
       })
       .then(function (canvas: any) {
-        var img = canvas.toDataURL('image/png');
-        var doc = new jsPDF('l', 'pt', 'a4');
-        doc.addImage(img, 'PNG', 7, 10, 200, 65, undefined, undefined, 90);
+        const imgData = canvas.toDataURL('image/png');
+        console.log(canvas);
+        const imgWidth = 283; // Ancho en mm para A4 en formato horizontal
+        const pageHeight = 120; // Alto en mm para A4
+        const imgHeight = (canvas.height * imgWidth) / canvas.width; // Calcular altura en mm
+
+        let heightLeft = imgHeight;
+        let position = 10;
+
+        const doc = new jsPDF('l', 'mm', 'a4');
+
+        // Añadir la primera imagen
+        doc.addImage(imgData, 'PNG', 7, position, imgWidth, imgHeight);
+
+        heightLeft -= pageHeight;
+
+        // Agregar más páginas si es necesario
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight; // Ajustar posición
+          doc.addPage();
+          doc.addImage(imgData, 'PNG', 7, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
         doc.save('demo.pdf');
       });
   }

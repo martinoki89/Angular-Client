@@ -9,15 +9,17 @@ export interface IHolding {
 export interface IVoucher {
   ID: string;
   Type: string;
-  Description: string;
+  Description?: string;
   Holdings: IHolding[];
+  Denomination: string;
+  Category: string;
+  Transactions: any[];
 }
 
 export interface IVouchers {
-  [key: string]: IVoucher;
+  [key: string]: IVoucher[];
 }
 
 export interface IReport {
-  Inflation: number;
-  Vouchers: IVouchers;
+  VouchersByCategory: IVouchers;
 }
