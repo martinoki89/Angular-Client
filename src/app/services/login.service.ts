@@ -1,6 +1,9 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+
 import { Observable, of } from 'rxjs';
+
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -8,8 +11,10 @@ import { Observable, of } from 'rxjs';
 export class LoginService {
   constructor(private http: HttpClient) {}
 
+  private apiUrl = environment.apiUrl;
+
   login(username: string, password: string): Observable<any> {
-    const url = `/api/api/token`;
+    const url = `${this.apiUrl}/token`;
     const body = {
       username,
       password,

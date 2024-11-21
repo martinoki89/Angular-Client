@@ -1,6 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+
 import { Observable } from 'rxjs';
+
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -8,20 +11,35 @@ import { Observable } from 'rxjs';
 export class ReportsService {
   constructor(private http: HttpClient) {}
 
-  getReportDataByDate(accountId: string, date: string): Observable<any> {
+  private apiUrl = environment.apiUrl;
+
+  getReportDataByDate(
+    accountId: string,
+    date: string,
+    daysInterval: null | number = 1,
+    monthsInterval: null | number = 0,
+    weeksInterval: null | number = 0
+  ): Observable<any> {
     const year = new Date(date).getFullYear();
     const month = new Date(date).getMonth() + 1;
     const day = new Date(date).getDate();
-    const url = `/api/api/accounts/${accountId}?date=${year}-${month
+
+    const inverval = `${monthsInterval}m:${weeksInterval}w:${daysInterval}d`;
+    const url = `${this.apiUrl}/accounts/${accountId}?date=${year}-${month
       .toString()
-      .padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+      .padStart(2, '0')}-${day
+      .toString()
+      .padStart(2, '0')}&interval=${inverval}`;
     return this.http.get<any>(url);
   }
 
   getReportDataByRange(
     accountId: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    daysInterval: null | number = 1,
+    monthsInterval: null | number = 0,
+    weeksInterval: null | number = 0
   ): Observable<any> {
     const startYear = new Date(startDate).getFullYear();
     const startMonth = new Date(startDate).getMonth() + 1;
@@ -29,17 +47,29 @@ export class ReportsService {
     const endYear = new Date(endDate).getFullYear();
     const endMonth = new Date(endDate).getMonth() + 1;
     const endDay = new Date(endDate).getDate();
-    const url = `/api/api/accounts/${accountId}?startDate=${startYear}-${startMonth
+    const inverval = `${monthsInterval}m:${weeksInterval}w:${daysInterval}d`;
+    const url = `${
+      this.apiUrl
+    }/accounts/${accountId}?startDate=${startYear}-${startMonth
       .toString()
       .padStart(2, '0')}-${startDay
       .toString()
       .padStart(2, '0')}&endDate=${endYear}-${endMonth
       .toString()
-      .padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+      .padStart(2, '0')}-${endDay
+      .toString()
+      .padStart(2, '0')}&interval=${inverval}`;
     return this.http.get<any>(url, {});
   }
-  exportXls(params: any, accountId: string) {
+  exportXls(
+    params: any,
+    accountId: string,
+    daysInterval: null | number = 1,
+    monthsInterval: null | number = 0,
+    weeksInterval: null | number = 0
+  ) {
     let dates: string;
+    const interval = `${monthsInterval}m:${weeksInterval}w:${daysInterval}d`;
     if (params?.startDate && params?.endDate) {
       const startYear = new Date(params.startDate).getFullYear();
       const startMonth = new Date(params.startDate).getMonth() + 1;
@@ -62,7 +92,7 @@ export class ReportsService {
         .toString()
         .padStart(2, '0')}`;
     }
-    const url = `/api/api/reports/${accountId}?${dates}&interval=0m:1w:0d&format=XLSX`;
+    const url = `${this.apiUrl}/reports/${accountId}?${dates}&interval=${interval}&format=XLSX`;
     return this.http.get(url, {
       responseType: 'blob',
     });

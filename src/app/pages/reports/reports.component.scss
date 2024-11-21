@@ -6,6 +6,22 @@ table {
   padding: 2rem;
 }
 
+.interval-container {
+  margin-left: 1rem;
+
+  .interval-wrapper {
+    display: flex;
+    justify-content: space-between;
+    width: 400px;
+    margin-top: 0.75rem;
+
+    .interval {
+      // margin-left: 1rem;
+      width: 100px;
+    }
+  }
+}
+
 .negative-value {
   color: red;
 }
@@ -26,14 +42,20 @@ table {
 .search-button {
   height: 56px;
   margin-left: 2rem;
+  margin-top: 2rem;
 }
 
 .radio-container {
+  // padding-top: 2rem;
+}
+
+.search-container {
+  height: 150px;
+  display: flex;
   padding-left: 2rem;
   padding-top: 2rem;
 }
 
-.search-container {
-  display: flex;
-  padding-left: 2rem;
+.card {
+  height: 150px;
 }
