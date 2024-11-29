@@ -4,6 +4,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
+import { IReportV2 } from '../pages/reports/interfacesv2';
 
 @Injectable({
   providedIn: 'root',
@@ -13,88 +14,73 @@ export class ReportsService {
 
   private apiUrl = environment.apiUrl;
 
-  getReportDataByDate(
-    accountId: string,
-    date: string,
-    daysInterval: null | number = 1,
-    monthsInterval: null | number = 0,
-    weeksInterval: null | number = 0
-  ): Observable<any> {
-    const year = new Date(date).getFullYear();
-    const month = new Date(date).getMonth() + 1;
-    const day = new Date(date).getDate();
-
-    const inverval = `${monthsInterval}m:${weeksInterval}w:${daysInterval}d`;
-    const url = `${this.apiUrl}/accounts/${accountId}?date=${year}-${month
-      .toString()
-      .padStart(2, '0')}-${day
-      .toString()
-      .padStart(2, '0')}&interval=${inverval}`;
+  getAccountVouchersByDate(accountId: string, date: string): Observable<any> {
+    const formattedDate = this.formatDate(date);
+    const url = `${this.apiUrl}/accounts/${accountId}?date=${formattedDate}`;
     return this.http.get<any>(url);
   }
 
-  getReportDataByRange(
+  getReportsByDate(accountId: string, date: string): Observable<any> {
+    const formattedDate = this.formatDate(date);
+    const url = `${this.apiUrl}/reports/${accountId}?date=${formattedDate}`;
+    return this.http.get<any>(url);
+  }
+
+  getAccountVouchersByRange(
     accountId: string,
     startDate: string,
     endDate: string,
     daysInterval: null | number = 1,
-    monthsInterval: null | number = 0,
     weeksInterval: null | number = 0
   ): Observable<any> {
-    const startYear = new Date(startDate).getFullYear();
-    const startMonth = new Date(startDate).getMonth() + 1;
-    const startDay = new Date(startDate).getDate();
-    const endYear = new Date(endDate).getFullYear();
-    const endMonth = new Date(endDate).getMonth() + 1;
-    const endDay = new Date(endDate).getDate();
-    const inverval = `${monthsInterval}m:${weeksInterval}w:${daysInterval}d`;
-    const url = `${
-      this.apiUrl
-    }/accounts/${accountId}?startDate=${startYear}-${startMonth
-      .toString()
-      .padStart(2, '0')}-${startDay
-      .toString()
-      .padStart(2, '0')}&endDate=${endYear}-${endMonth
-      .toString()
-      .padStart(2, '0')}-${endDay
-      .toString()
-      .padStart(2, '0')}&interval=${inverval}`;
+    const startDateFormatted = this.formatDate(startDate);
+    const endDateFormatted = this.formatDate(endDate);
+    const interval = `${weeksInterval}w:${daysInterval}d`;
+    const url = `${this.apiUrl}/accounts/${accountId}?startDate=${startDateFormatted}&endDate=${endDateFormatted}&interval=${interval}`;
     return this.http.get<any>(url, {});
   }
+
+  getReportsByRange(
+    accountId: string,
+    startDate: string,
+    endDate: string,
+    daysInterval: null | number = 1,
+    weeksInterval: null | number = 0
+  ): Observable<IReportV2> {
+    const startDateFormatted = this.formatDate(startDate);
+    const endDateFormatted = this.formatDate(endDate);
+    const interval = `${weeksInterval}w:${daysInterval}d`;
+    const url = `${this.apiUrl}/reports/${accountId}?startDate=${startDateFormatted}&endDate=${endDateFormatted}&interval=${interval}`;
+    return this.http.get<any>(url, {});
+  }
+
   exportXls(
     params: any,
     accountId: string,
     daysInterval: null | number = 1,
-    monthsInterval: null | number = 0,
     weeksInterval: null | number = 0
   ) {
     let dates: string;
-    const interval = `${monthsInterval}m:${weeksInterval}w:${daysInterval}d`;
+    const interval = `${weeksInterval}w:${daysInterval}d`;
     if (params?.startDate && params?.endDate) {
-      const startYear = new Date(params.startDate).getFullYear();
-      const startMonth = new Date(params.startDate).getMonth() + 1;
-      const startDay = new Date(params.startDate).getDate();
-      const endYear = new Date(params.endDate).getFullYear();
-      const endMonth = new Date(params.endDate).getMonth() + 1;
-      const endDay = new Date(params.endDate).getDate();
-      dates = `startDate=${startYear}-${startMonth
-        .toString()
-        .padStart(2, '0')}-${startDay
-        .toString()
-        .padStart(2, '0')}&endDate=${endYear}-${endMonth
-        .toString()
-        .padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+      const startDateFormatted = this.formatDate(params.startDate);
+      const endDateFormatted = this.formatDate(params.endDate);
+      dates = `startDate=${startDateFormatted}&endDate=${endDateFormatted}`;
     } else {
-      const year = new Date(params.date).getFullYear();
-      const month = new Date(params.date).getMonth() + 1;
-      const day = new Date(params.date).getDate();
-      dates = `date=${year}-${month.toString().padStart(2, '0')}-${day
-        .toString()
-        .padStart(2, '0')}`;
+      const dateFormatted = this.formatDate(params?.date);
+      dates = `date=${dateFormatted}`;
     }
     const url = `${this.apiUrl}/reports/${accountId}?${dates}&interval=${interval}&format=XLSX`;
     return this.http.get(url, {
       responseType: 'blob',
     });
+  }
+
+  private formatDate(date: string | Date): string {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

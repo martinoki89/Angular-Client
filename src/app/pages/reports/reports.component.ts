@@ -30,6 +30,15 @@ import jsPDF from 'jspdf';
 import * as html2canvas from 'html2canvas';
 import { ActivatedRoute, ActivatedRouteSnapshot } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
+import { forkJoin } from 'rxjs';
+import {
+  IReferences,
+  IReportV2,
+  IValuation,
+  IVouchersReturn,
+} from './interfacesv2';
+import { reportsMockV2 } from './reports-mock-2';
+import { A3500_ID, INFLATION_ID } from '../constants';
 
 export interface PeriodicElement {
   name: string;
@@ -67,6 +76,10 @@ export class ReportsComponent implements OnInit {
   dates: any[] = [];
   differenceColumns: string[] = [];
   differenceDataSource: any[] = [];
+  returnsColumns: string[] = [];
+  returnsDataSource: any[] = [];
+  referencesColumns: string[] = ['date', 'value_dolar', 'value_inflation'];
+  referencesDataSource: any[] = [];
   percentageWeeklyColumns: string[] = [];
   percentageWeeklyDataSource: any[] = [];
   percentageAcumColumns: string[] = [];
@@ -84,140 +97,11 @@ export class ReportsComponent implements OnInit {
     endDate: new FormControl(),
     date: new FormControl(),
     daysInterval: new FormControl(1),
-    monthsInterval: new FormControl(0),
     weeksInterval: new FormControl(0),
   });
   readonly labelPosition = model<EDateType.DAY | EDateType.RANGE>(
     EDateType.RANGE
   );
-
-  dataChart = [
-    {
-      name: 'Maldives',
-      series: [
-        {
-          value: 4540,
-          name: '2016-09-16',
-        },
-        {
-          value: 4351,
-          name: '2016-09-19',
-        },
-        {
-          value: 5988,
-          name: '2016-09-18',
-        },
-        {
-          value: 6881,
-          name: '2016-09-14',
-        },
-        {
-          value: 3586,
-          name: '2016-09-13',
-        },
-      ],
-    },
-    {
-      name: 'Qatar',
-      series: [
-        {
-          value: 2773,
-          name: '2016-09-16',
-        },
-        {
-          value: 4748,
-          name: '2016-09-19',
-        },
-        {
-          value: 5303,
-          name: '2016-09-18',
-        },
-        {
-          value: 6949,
-          name: '2016-09-14',
-        },
-        {
-          value: 2832,
-          name: '2016-09-13',
-        },
-      ],
-    },
-    {
-      name: 'Taiwan',
-      series: [
-        {
-          value: 4611,
-          name: '2016-09-16',
-        },
-        {
-          value: 2045,
-          name: '2016-09-19',
-        },
-        {
-          value: 5249,
-          name: '2016-09-18',
-        },
-        {
-          value: 6613,
-          name: '2016-09-14',
-        },
-        {
-          value: 3015,
-          name: '2016-09-13',
-        },
-      ],
-    },
-    {
-      name: 'Palestinian Territory',
-      series: [
-        {
-          value: 6626,
-          name: '2016-09-16',
-        },
-        {
-          value: 6928,
-          name: '2016-09-19',
-        },
-        {
-          value: 6686,
-          name: '2016-09-18',
-        },
-        {
-          value: 6454,
-          name: '2016-09-14',
-        },
-        {
-          value: 4746,
-          name: '2016-09-13',
-        },
-      ],
-    },
-    {
-      name: 'Bolivia',
-      series: [
-        {
-          value: 2050,
-          name: '2016-09-16',
-        },
-        {
-          value: 5305,
-          name: '2016-09-19',
-        },
-        {
-          value: 2292,
-          name: '2016-09-18',
-        },
-        {
-          value: 5475,
-          name: '2016-09-14',
-        },
-        {
-          value: 3371,
-          name: '2016-09-13',
-        },
-      ],
-    },
-  ];
 
   viewPC: [number, number] = [700, 400];
   animationPC = true;
@@ -226,6 +110,8 @@ export class ReportsComponent implements OnInit {
   doughnut = true;
   charData: any[] = [];
   accountId!: string;
+  inflationData?: IReferences;
+  dolarData?: IReferences;
 
   percentageFormatterPC(data: any): string {
     return data.value + '%';
@@ -239,6 +125,7 @@ export class ReportsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // this.calculateData(reportsMockV2);
     this.loaderService.setLoader(true);
   }
 
@@ -251,8 +138,8 @@ export class ReportsComponent implements OnInit {
     this.showRangeDatepicker = radioData.value === EDateType.RANGE;
   }
 
-  calculateData(reportData: IReport) {
-    const report: IReport = reportData;
+  calculateData(reportData: IReportV2) {
+    const report: IReportV2 = reportData;
     const vouchers: IVouchers = report.VouchersByCategory;
     const dates = new Set<string>();
     const columns = new Set<string>();
@@ -265,7 +152,7 @@ export class ReportsComponent implements OnInit {
         let hasValidDate = false;
         for (const holding of holdings) {
           const date = holding.Date
-            ? new Date(holding.Date).toISOString().split('T')[0]
+            ? new Date(holding.DateRequested).toISOString().split('T')[0]
             : '-';
           if (holding.Date) {
             hasValidDate = true;
@@ -321,8 +208,80 @@ export class ReportsComponent implements OnInit {
         }
       }
     }
-    this.getChartData(this.dataSource);
-    this.calculateDifferences();
+    this.calculateReturn(reportData);
+  }
+
+  calculateReturn(reportData: IReportV2) {
+    const report: IReportV2 = reportData;
+    const vouchers: IVouchersReturn = report.VouchersReturnByCategory;
+    const dates = new Set<string>();
+    const columns = new Set<string>();
+    const rowsMap: { [key: string]: { [key: string]: number | string } } = {};
+    const idValuesMap: { [key: string]: number } = {};
+
+    for (const id in vouchers) {
+      if (vouchers.hasOwnProperty(id)) {
+        const returns = vouchers[id][0].ReturnsByDateRange;
+        let hasValidDate = false;
+        for (const returnData of returns || []) {
+          const date = returnData.StartDate
+            ? new Date(returnData.StartDate).toISOString().split('T')[0]
+            : '-';
+          if (returnData.StartDate) {
+            hasValidDate = true;
+            dates.add(date);
+          }
+          if (!rowsMap[date]) {
+            rowsMap[date] = {};
+          }
+          rowsMap[date][id] =
+            returnData.ReturnPercentage !== null &&
+            returnData.ReturnPercentage !== undefined
+              ? returnData.ReturnPercentage
+              : '-';
+        }
+        if (!hasValidDate) {
+          idValuesMap[id] = idValuesMap[id] || 0;
+        } else {
+          columns.add(id);
+        }
+      }
+    }
+
+    this.returnsColumns = ['date', ...Array.from(columns), 'total'];
+    const sortedDates = Array.from(dates).sort();
+    this.returnsDataSource = sortedDates.map((date) => {
+      const row: any = { date };
+      let total = 0;
+      for (const id of columns) {
+        const value = rowsMap[date][id];
+        row[id] = value !== undefined ? value : '-';
+        if (typeof value === 'number') {
+          total += value;
+        }
+      }
+      row['total'] = total > 0 ? total : '-';
+      return row;
+    });
+
+    for (const id in idValuesMap) {
+      if (idValuesMap.hasOwnProperty(id)) {
+        const row: any = { date: '-' };
+        let total = 0;
+        for (const columnId of columns) {
+          if (columnId === id) {
+            row[columnId] = idValuesMap[id];
+            total += idValuesMap[id];
+          } else {
+            row[columnId] = '-';
+          }
+        }
+        row['total'] = total > 0 ? total : '-';
+        if (Object.values(row).filter((item) => item !== '-')?.length) {
+          this.returnsDataSource.push(row);
+        }
+      }
+    }
   }
 
   calculateDifferences() {
@@ -385,8 +344,8 @@ export class ReportsComponent implements OnInit {
         date: row.date,
         porcentual,
         ARS: activeReturn.total,
-        inflacion: Math.random(),
-        A3500: Math.random(),
+        inflacion: this.getValuationValue(row.date, this.inflationData),
+        A3500: this.getValuationValue(row.date, this.dolarData),
       };
     });
 
@@ -433,8 +392,8 @@ export class ReportsComponent implements OnInit {
           date: row.date,
           porcentual,
           ARS,
-          inflacion: Math.random(),
-          A3500: Math.random(),
+          inflacion: this.getValuationValue(row.date, this.inflationData),
+          A3500: this.getValuationValue(row.date, this.dolarData),
         };
       }
     );
@@ -442,42 +401,19 @@ export class ReportsComponent implements OnInit {
 
   searchData() {
     this.loaderService.setLoader(true);
-    const {
-      startDate,
-      endDate,
-      date,
-      dateType,
-      daysInterval,
-      monthsInterval,
-      weeksInterval,
-    } = this.reportsFormGroup?.controls;
+    const { startDate, endDate, date, dateType, daysInterval, weeksInterval } =
+      this.reportsFormGroup?.controls;
+
     if (dateType?.value === EDateType.DAY) {
-      this.reportService
-        .getReportDataByDate(
-          this.accountId,
-          date.value,
-          daysInterval?.value,
-          monthsInterval?.value,
-          weeksInterval?.value
-        )
-        .subscribe((reportData: IReport) => {
-          this.calculateData(reportData);
-          // this.loaderService.setLoader();
-        });
+      this.fetchReportData(true, date.value);
     } else {
-      this.reportService
-        .getReportDataByRange(
-          this.accountId,
-          startDate.value,
-          endDate.value,
-          daysInterval?.value,
-          monthsInterval?.value,
-          weeksInterval?.value
-        )
-        .subscribe((reportData: IReport) => {
-          this.calculateData(reportData);
-          // this.loaderService.setLoader();
-        });
+      this.fetchReportData(
+        false,
+        startDate.value,
+        endDate.value,
+        daysInterval?.value,
+        weeksInterval?.value
+      );
     }
   }
 
@@ -490,38 +426,9 @@ export class ReportsComponent implements OnInit {
       : !!startDate?.value && !!endDate?.value;
   }
 
-  getChartData(source: any[]) {
-    const transformedArray: any[] = [];
-    source.forEach((item) => {
-      Object.keys(item).forEach((key) => {
-        if (key !== 'date') {
-          const existing = transformedArray.find((t) => t.name === key);
-          const valueEntry = { value: item[key] as number, name: item.date };
-
-          if (existing) {
-            existing.series.push(valueEntry);
-          } else {
-            transformedArray.push({
-              name: key,
-              series: [valueEntry],
-            });
-          }
-        }
-      });
-    });
-    this.charData = transformedArray;
-  }
-
-  exportXls() {
-    const {
-      startDate,
-      endDate,
-      date,
-      dateType,
-      daysInterval,
-      monthsInterval,
-      weeksInterval,
-    } = this.reportsFormGroup?.controls;
+  exportFile(type: string) {
+    const { startDate, endDate, date, dateType, daysInterval, weeksInterval } =
+      this.reportsFormGroup?.controls;
     const params =
       dateType?.value === EDateType.DAY
         ? { date: date.value }
@@ -532,7 +439,6 @@ export class ReportsComponent implements OnInit {
         params,
         this.accountId,
         daysInterval?.value,
-        monthsInterval?.value,
         weeksInterval?.value
       )
       .subscribe({
@@ -540,7 +446,7 @@ export class ReportsComponent implements OnInit {
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = 'reporte.xlsx';
+          a.download = `reporte.${type}`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -587,4 +493,68 @@ export class ReportsComponent implements OnInit {
         doc.save('demo.pdf');
       });
   }
+
+  private fetchReportData(
+    isSingleDate: boolean = false,
+    start: any,
+    end?: any | null,
+    days?: number | null,
+    weeks?: number | null
+  ) {
+    const reportObservable = isSingleDate
+      ? this.reportService.getReportsByDate(this.accountId, start)
+      : this.reportService.getReportsByRange(
+          this.accountId,
+          start,
+          end,
+          days,
+          weeks
+        );
+
+    reportObservable.subscribe({
+      next: (reports: IReportV2) => {
+        this.inflationData = reports.ReferenceVariables?.find(
+          (data: IReferences) => data.ID === INFLATION_ID
+        );
+        this.dolarData = reports.ReferenceVariables?.find(
+          (data: IReferences) => data.ID === A3500_ID
+        );
+
+        const inflationValues = this.inflationData?.Valuations;
+        const dolarValues = this.dolarData?.Valuations;
+        this.referencesDataSource = [];
+
+        // Recorremos todos los datos de inflación
+        inflationValues?.forEach((inflation) => {
+          // Buscamos la misma fecha en los datos del dólar
+          const dolarValue = dolarValues?.find(
+            (dolar) => dolar.Date === inflation.Date
+          );
+
+          // Si encontramos una fecha común, agregamos un nuevo objeto al array combinado
+          if (dolarValue) {
+            this.referencesDataSource.push({
+              date: inflation.Date,
+              value_dolar: dolarValue.Value,
+              value_inflation: inflation.Value,
+            });
+          }
+        });
+
+        this.calculateData(reports);
+        this.loaderService.setLoader(false);
+      },
+      error: (err) => {
+        console.error('Error al obtener los datos del informe:', err);
+        this.loaderService.setLoader(false); // Desactiva el loader incluso si ocurre un error
+      },
+    });
+  }
+
+  private getValuationValue = (date: string, reference?: IReferences) => {
+    const ref = reference?.Valuations?.find((i: IValuation) =>
+      date.includes(i.Date)
+    );
+    return ref?.Value;
+  };
 }
