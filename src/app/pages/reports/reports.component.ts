@@ -28,7 +28,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { LoaderService } from '../../services/loader.service';
 import jsPDF from 'jspdf';
 import * as html2canvas from 'html2canvas';
-import { ActivatedRoute, ActivatedRouteSnapshot } from '@angular/router';
+import {
+  ActivatedRoute,
+  ActivatedRouteSnapshot,
+  Router,
+} from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { forkJoin } from 'rxjs';
 import {
@@ -37,7 +41,6 @@ import {
   IValuation,
   IVouchersReturn,
 } from './interfacesv2';
-import { reportsMockV2 } from './reports-mock-2';
 import { A3500_ID, INFLATION_ID } from '../constants';
 
 export interface PeriodicElement {
@@ -66,7 +69,7 @@ export interface PeriodicElement {
     MatButtonModule,
     MatCardModule,
   ],
-  providers: [provideNativeDateAdapter(), ReportsService, LoaderService],
+  providers: [provideNativeDateAdapter(), ReportsService],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })
@@ -120,13 +123,10 @@ export class ReportsComponent implements OnInit {
     private readonly reportService: ReportsService,
     private readonly loaderService: LoaderService,
     private readonly route: ActivatedRoute
-  ) {
-    this.accountId = route.snapshot.params['accountId'];
-  }
+  ) {}
 
   ngOnInit(): void {
-    // this.calculateData(reportsMockV2);
-    this.loaderService.setLoader(true);
+    this.accountId = this.route.snapshot.params['accountId'];
   }
 
   getCurrencySymbol(currency: string): string {
@@ -400,7 +400,7 @@ export class ReportsComponent implements OnInit {
   }
 
   searchData() {
-    this.loaderService.setLoader(true);
+    this.loaderService.showLoader();
     const { startDate, endDate, date, dateType, daysInterval, weeksInterval } =
       this.reportsFormGroup?.controls;
 
@@ -427,6 +427,7 @@ export class ReportsComponent implements OnInit {
   }
 
   exportFile(type: string) {
+    this.loaderService.showLoader();
     const { startDate, endDate, date, dateType, daysInterval, weeksInterval } =
       this.reportsFormGroup?.controls;
     const params =
@@ -451,9 +452,11 @@ export class ReportsComponent implements OnInit {
           a.click();
           document.body.removeChild(a);
           window.URL.revokeObjectURL(url);
+          this.loaderService.hideLoader();
         },
         error: (error) => {
           console.error('Error al descargar el archivo', error);
+          this.loaderService.hideLoader();
         },
       });
   }
@@ -502,7 +505,7 @@ export class ReportsComponent implements OnInit {
     weeks?: number | null
   ) {
     const reportObservable = isSingleDate
-      ? this.reportService.getReportsByDate(this.accountId, start)
+      ? this.reportService.getReportsByRange(this.accountId, start, start)
       : this.reportService.getReportsByRange(
           this.accountId,
           start,
@@ -531,7 +534,6 @@ export class ReportsComponent implements OnInit {
             (dolar) => dolar.Date === inflation.Date
           );
 
-          // Si encontramos una fecha común, agregamos un nuevo objeto al array combinado
           if (dolarValue) {
             this.referencesDataSource.push({
               date: inflation.Date,
@@ -542,11 +544,11 @@ export class ReportsComponent implements OnInit {
         });
 
         this.calculateData(reports);
-        this.loaderService.setLoader(false);
+        this.loaderService.hideLoader();
       },
       error: (err) => {
         console.error('Error al obtener los datos del informe:', err);
-        this.loaderService.setLoader(false); // Desactiva el loader incluso si ocurre un error
+        this.loaderService.hideLoader();
       },
     });
   }

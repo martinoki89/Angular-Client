@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +11,14 @@ export class LoaderService {
   constructor() {}
 
   setLoader(value: boolean = false) {
-    console.log('value', value);
     this.loaderSubject.next(value);
+  }
+
+  showLoader() {
+    this.loaderSubject.next(true);
+  }
+
+  hideLoader() {
+    this.loaderSubject.next(false);
   }
 }

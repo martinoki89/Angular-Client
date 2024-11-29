@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { LoginService } from '../../services/login.service';
 import { Router } from '@angular/router';
+import { LoaderService } from '../../services/loader.service';
 
 @Component({
   selector: 'app-login',
@@ -28,16 +29,18 @@ export class LoginComponent {
   });
 
   constructor(
-    private readonly cdr: ChangeDetectorRef,
     private readonly loginService: LoginService,
+    private readonly loaderService: LoaderService,
     private router: Router
   ) {}
 
   submit() {
+    this.loaderService.showLoader();
     const { username, password } = this.loginForm.controls;
     if (this.loginForm.valid) {
       this.loginService.login(username.value, password.value).subscribe({
         next: (response) => {
+          this.loaderService.hideLoader();
           if (response?.access_token) {
             this.loginService.saveToken(response.access_token);
             this.router.navigate(['/accounts']);
@@ -46,6 +49,7 @@ export class LoginComponent {
           }
         },
         error: (error) => {
+          this.loaderService.hideLoader();
           console.error('Login fallido', error);
           this.error = 'Usuario y/o password incorrectas';
         },

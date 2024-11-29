@@ -27,18 +27,26 @@ import { Subscription } from 'rxjs';
 export class AppComponent implements OnInit, OnDestroy {
   title = 'demo';
   loaderState: boolean = false;
-  private subscription: Subscription = new Subscription();
+  private loaderSubscription: Subscription | undefined;
 
   constructor(private loaderService: LoaderService) {}
 
   ngOnInit(): void {
-    this.subscription = this.loaderService.loaderState$.subscribe((loading) => {
-      this.loaderState = loading;
-      console.log('Loader State:', loading);
+    // Nos suscribimos a los cambios de estado del loader
+    this.loaderSubscription = this.loaderService.loaderState$.subscribe({
+      next: (state) => {
+        this.loaderState = state;
+      },
+      error: (error) => {
+        console.error('Error al suscribirse al estado del loader:', error); // Captura cualquier error de suscripción
+      },
     });
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe();
+    // Asegurarnos de cancelar la suscripción cuando el componente se destruya
+    if (this.loaderSubscription) {
+      this.loaderSubscription.unsubscribe();
+    }
   }
 }

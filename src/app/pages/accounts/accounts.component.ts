@@ -15,6 +15,7 @@ import { Router, RouterModule } from '@angular/router';
 import { debounceTime } from 'rxjs';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatOptionSelectionChange } from '@angular/material/core';
+import { LoaderService } from '../../services/loader.service';
 
 @Component({
   selector: 'app-accounts',
@@ -54,12 +55,21 @@ export class AccountsComponent implements OnInit {
 
   constructor(
     private readonly accountsService: AccountsService,
+    private readonly loaderService: LoaderService,
     private readonly router: Router
   ) {}
 
   searchAccount(account: string) {
-    this.accountsService.getAccount(account).subscribe((response: any) => {
-      this.accounts = response;
+    this.loaderService.showLoader();
+    this.accountsService.getAccount(account).subscribe({
+      next: (response: any) => {
+        this.accounts = response;
+        this.loaderService.hideLoader();
+      },
+      error: (error: any) => {
+        console.error(error);
+        this.loaderService.hideLoader();
+      },
     });
   }
 
