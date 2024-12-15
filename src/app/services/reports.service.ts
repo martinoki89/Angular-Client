@@ -70,7 +70,29 @@ export class ReportsService {
       const dateFormatted = this.formatDate(params?.date);
       dates = `date=${dateFormatted}`;
     }
-    const url = `${this.apiUrl}/reports/${accountId}?${dates}&interval=${interval}&format=XLSX`;
+    const url = `${this.apiUrl}/reports/${accountId}/file?${dates}&interval=${interval}&format=XLSX`;
+    return this.http.get(url, {
+      responseType: 'blob',
+    });
+  }
+
+  exportPdf(
+    params: any,
+    accountId: string,
+    daysInterval: null | number = 1,
+    weeksInterval: null | number = 0
+  ) {
+    let dates: string;
+    const interval = `${weeksInterval}w:${daysInterval}d`;
+    if (params?.startDate && params?.endDate) {
+      const startDateFormatted = this.formatDate(params.startDate);
+      const endDateFormatted = this.formatDate(params.endDate);
+      dates = `startDate=${startDateFormatted}&endDate=${endDateFormatted}`;
+    } else {
+      const dateFormatted = this.formatDate(params?.date);
+      dates = `date=${dateFormatted}`;
+    }
+    const url = `${this.apiUrl}/reports/${accountId}/file?${dates}&interval=${interval}&format=PDF`;
     return this.http.get(url, {
       responseType: 'blob',
     });

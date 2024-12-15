@@ -1,14 +1,5 @@
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Component, model, OnInit } from '@angular/core';
-import { MatTableModule } from '@angular/material/table';
-import { reportsMock } from './reports-mock';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { provideNativeDateAdapter } from '@angular/material/core';
-import {
-  MatFormFieldModule,
-  MatHint,
-  MatLabel,
-} from '@angular/material/form-field';
-import { MatRadioChange, MatRadioModule } from '@angular/material/radio';
 import {
   FormBuilder,
   FormControl,
@@ -16,32 +7,43 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { CommonModule, CurrencyPipe } from '@angular/common';
-import { MatInputModule } from '@angular/material/input';
-import { IReport, IVouchers } from './interfaces';
-import { MatTabsModule } from '@angular/material/tabs';
-import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { MatButtonModule } from '@angular/material/button';
-import { ReportsService } from '../../services/reports.service';
-import { EDateType } from '../enums';
+import { MatCardModule } from '@angular/material/card';
+import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import {
+  MatFormFieldModule,
+  MatHint,
+  MatLabel,
+} from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { LoaderService } from '../../services/loader.service';
-import jsPDF from 'jspdf';
-import * as html2canvas from 'html2canvas';
+import { MatRadioChange, MatRadioModule } from '@angular/material/radio';
+import { MatTableModule } from '@angular/material/table';
+import { MatTabsModule } from '@angular/material/tabs';
 import {
   ActivatedRoute,
   ActivatedRouteSnapshot,
   Router,
 } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
+import { NgxChartsModule } from '@swimlane/ngx-charts';
+
+import * as html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { forkJoin } from 'rxjs';
+
+import { LoaderService } from '../../services/loader.service';
+import { ReportsService } from '../../services/reports.service';
+import { A3500_ID, INFLATION_ID } from '../constants';
+import { EDateType } from '../enums';
+import { IReport, IVouchers } from './interfaces';
 import {
   IReferences,
   IReportV2,
   IValuation,
   IVouchersReturn,
 } from './interfacesv2';
-import { A3500_ID, INFLATION_ID } from '../constants';
+import { reportsMock } from './reports-mock';
 
 export interface PeriodicElement {
   name: string;
@@ -435,66 +437,57 @@ export class ReportsComponent implements OnInit {
         ? { date: date.value }
         : { startDate: startDate.value, endDate: endDate.value };
 
-    this.reportService
-      .exportXls(
-        params,
-        this.accountId,
-        daysInterval?.value,
-        weeksInterval?.value
-      )
-      .subscribe({
-        next: (blob: Blob) => {
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `reporte.${type}`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
-          this.loaderService.hideLoader();
-        },
-        error: (error) => {
-          console.error('Error al descargar el archivo', error);
-          this.loaderService.hideLoader();
-        },
-      });
-  }
-
-  exportPdf() {
-    html2canvas
-      .default(document.getElementById('printcontent')!, {
-        allowTaint: true,
-        useCORS: false,
-        scale: 3,
-      })
-      .then(function (canvas: any) {
-        const imgData = canvas.toDataURL('image/png');
-        console.log(canvas);
-        const imgWidth = 283; // Ancho en mm para A4 en formato horizontal
-        const pageHeight = 120; // Alto en mm para A4
-        const imgHeight = (canvas.height * imgWidth) / canvas.width; // Calcular altura en mm
-
-        let heightLeft = imgHeight;
-        let position = 10;
-
-        const doc = new jsPDF('l', 'mm', 'a4');
-
-        // Añadir la primera imagen
-        doc.addImage(imgData, 'PNG', 7, position, imgWidth, imgHeight);
-
-        heightLeft -= pageHeight;
-
-        // Agregar más páginas si es necesario
-        while (heightLeft >= 0) {
-          position = heightLeft - imgHeight; // Ajustar posición
-          doc.addPage();
-          doc.addImage(imgData, 'PNG', 7, position, imgWidth, imgHeight);
-          heightLeft -= pageHeight;
-        }
-
-        doc.save('demo.pdf');
-      });
+    if (type == 'xlsx') {
+      this.reportService
+        .exportXls(
+          params,
+          this.accountId,
+          daysInterval?.value,
+          weeksInterval?.value
+        )
+        .subscribe({
+          next: (blob: Blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `reporte.${type}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            this.loaderService.hideLoader();
+          },
+          error: (error) => {
+            console.error('Error al descargar el archivo', error);
+            this.loaderService.hideLoader();
+          },
+        });
+    } else {
+      this.reportService
+        .exportPdf(
+          params,
+          this.accountId,
+          daysInterval?.value,
+          weeksInterval?.value
+        )
+        .subscribe({
+          next: (blob: Blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `reporte.pdf`; // Explicitly set the file extension to PDF
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url); // Clean up the object URL
+            this.loaderService.hideLoader(); // Hide the loader after download
+          },
+          error: (error) => {
+            console.error('Error al descargar el archivo', error);
+            this.loaderService.hideLoader(); // Hide the loader on error
+          },
+        });
+    }
   }
 
   private fetchReportData(
