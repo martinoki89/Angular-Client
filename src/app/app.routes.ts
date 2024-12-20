@@ -8,16 +8,22 @@ import { AuthGuard } from './guards/auth.guard';
 export const routes: Routes = [
   { path: 'login', title: 'Login', component: LoginComponent },
   {
-    canActivate: [AuthGuard],
-    path: 'accounts',
-    title: 'Cuentas',
-    component: AccountsComponent,
-  },
-  {
-    canActivate: [AuthGuard],
-    path: 'reports/:accountId',
-    title: 'Reportes',
-    component: ReportsComponent,
+    path: '',
+    component: MainComponent,
+    children: [
+      {
+        path: 'accounts',
+        title: 'Cuentas',
+        component: AccountsComponent,
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'reports/:accountId',
+        title: 'Reportes',
+        component: ReportsComponent,
+        canActivate: [AuthGuard],
+      },
+    ],
   },
   { path: '**', redirectTo: 'accounts' },
 ];
