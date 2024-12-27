@@ -1,20 +1,20 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Component, model, OnInit } from '@angular/core';
 import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  FormsModule,
-  ReactiveFormsModule,
+    FormBuilder,
+    FormControl,
+    FormGroup,
+    FormsModule,
+    ReactiveFormsModule
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import {
-  MatFormFieldModule,
-  MatHint,
-  MatLabel,
+    MatFormFieldModule,
+    MatHint,
+    MatLabel
 } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -22,9 +22,9 @@ import { MatRadioChange, MatRadioModule } from '@angular/material/radio';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import {
-  ActivatedRoute,
-  ActivatedRouteSnapshot,
-  Router,
+    ActivatedRoute,
+    ActivatedRouteSnapshot,
+    Router
 } from '@angular/router';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 
@@ -38,10 +38,10 @@ import { A3500_ID, INFLATION_ID } from '../constants';
 import { EDateType } from '../enums';
 import { IReport, IVouchers } from './interfaces';
 import {
-  IReferences,
-  IReportV2,
-  IValuation,
-  IVouchersReturn,
+    IReferences,
+    IReportV2,
+    IValuation,
+    IVouchersReturn
 } from './interfacesv2';
 import { reportsMock } from './reports-mock';
 
@@ -531,7 +531,7 @@ export class ReportsComponent implements OnInit {
             this.referencesDataSource.push({
               date: inflation.Date,
               value_dolar: dolarValue.Value,
-              value_inflation: inflation.Value,
+              value_inflation: inflation.Value / 100,
             });
           }
         });
