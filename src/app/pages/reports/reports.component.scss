@@ -1,3 +1,5 @@
+@use "@angular/material" as mat;
+
 table {
   width: 100%;
 }
@@ -58,4 +60,16 @@ table {
 
 .card {
   height: 150px;
+}
+
+::ng-deep mat-snack-bar-container {
+  .mdc-snackbar__surface {
+    color: #721c24 !important;
+    background-color: #f8d7da !important;
+    border-color: #f5c6cb !important;
+  }
+
+  .mat-mdc-button {
+    color: #721c24 !important;
+  }
 }

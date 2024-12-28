@@ -1,20 +1,20 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { Component, model, OnInit } from '@angular/core';
+import { Component, inject, model, OnInit } from '@angular/core';
 import {
-    FormBuilder,
-    FormControl,
-    FormGroup,
-    FormsModule,
-    ReactiveFormsModule
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import {
-    MatFormFieldModule,
-    MatHint,
-    MatLabel
+  MatFormFieldModule,
+  MatHint,
+  MatLabel,
 } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -22,9 +22,9 @@ import { MatRadioChange, MatRadioModule } from '@angular/material/radio';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import {
-    ActivatedRoute,
-    ActivatedRouteSnapshot,
-    Router
+  ActivatedRoute,
+  ActivatedRouteSnapshot,
+  Router,
 } from '@angular/router';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 
@@ -38,12 +38,18 @@ import { A3500_ID, INFLATION_ID } from '../constants';
 import { EDateType } from '../enums';
 import { IReport, IVouchers } from './interfaces';
 import {
-    IReferences,
-    IReportV2,
-    IValuation,
-    IVouchersReturn
+  IReferences,
+  IReportV2,
+  IValuation,
+  IVouchersReturn,
 } from './interfacesv2';
 import { reportsMock } from './reports-mock';
+import {
+  MatSnackBar,
+  MatSnackBarHorizontalPosition,
+  MatSnackBarModule,
+  MatSnackBarVerticalPosition,
+} from '@angular/material/snack-bar';
 
 export interface PeriodicElement {
   name: string;
@@ -76,6 +82,8 @@ export interface PeriodicElement {
   styleUrl: './reports.component.scss',
 })
 export class ReportsComponent implements OnInit {
+  horizontalPosition: MatSnackBarHorizontalPosition = 'center';
+  verticalPosition: MatSnackBarVerticalPosition = 'top';
   displayedColumns: string[] = [];
   dataSource: any[] = [];
   dates: any[] = [];
@@ -124,7 +132,8 @@ export class ReportsComponent implements OnInit {
   constructor(
     private readonly reportService: ReportsService,
     private readonly loaderService: LoaderService,
-    private readonly route: ActivatedRoute
+    private readonly route: ActivatedRoute,
+    private readonly snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -457,8 +466,11 @@ export class ReportsComponent implements OnInit {
             window.URL.revokeObjectURL(url);
             this.loaderService.hideLoader();
           },
-          error: (error) => {
-            console.error('Error al descargar el archivo', error);
+          error: (err) => {
+            console.error('Error al descargar el archivo', err);
+            const error: string =
+              err?.error?.error || 'Ocurrió un error al descargar el archivo.';
+            this.showErrorSnackBar(error);
             this.loaderService.hideLoader();
           },
         });
@@ -482,8 +494,11 @@ export class ReportsComponent implements OnInit {
             window.URL.revokeObjectURL(url); // Clean up the object URL
             this.loaderService.hideLoader(); // Hide the loader after download
           },
-          error: (error) => {
-            console.error('Error al descargar el archivo', error);
+          error: (err) => {
+            console.error('Error al descargar el archivo', err);
+            const error: string =
+              err?.error?.error || 'Ocurrió un error al descargar el archivo.';
+            this.showErrorSnackBar(error);
             this.loaderService.hideLoader(); // Hide the loader on error
           },
         });
@@ -540,7 +555,10 @@ export class ReportsComponent implements OnInit {
         this.loaderService.hideLoader();
       },
       error: (err) => {
+        const error: string =
+          err?.error?.error || 'Ocurrió un error al obtener los datos.';
         console.error('Error al obtener los datos del informe:', err);
+        this.showErrorSnackBar(error);
         this.loaderService.hideLoader();
       },
     });
@@ -552,4 +570,12 @@ export class ReportsComponent implements OnInit {
     );
     return ref?.Value;
   };
+
+  private showErrorSnackBar(message: string) {
+    this.snackBar.open(message, 'X', {
+      horizontalPosition: this.horizontalPosition,
+      verticalPosition: this.verticalPosition,
+      panelClass: ['error-snackbar'],
+    });
+  }
 }
